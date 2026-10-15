@@ -32,7 +32,8 @@ pinned revision) when it starts:
    - Container disk: 20 GB with a network volume, **100 GB** without
    - Allowed CUDA versions: 12.8, 12.9, 13.0
    - Optional env: `WAN_MODES=t2v` or `i2v` to download and serve only one mode (half the weights)
-3. Publish a GitHub release to trigger a build.
+3. Runpod builds the image on every push to `main` (the endpoint's Builds tab shows progress;
+   roll back from there with ⋯ → Rollback).
 
 The first worker start downloads the weights (69 GB for both modes, 38 GB for one). It checks
 the free space first and stops with a clear message if the models won't fit. Watch the worker
