@@ -101,7 +101,8 @@ Errors come back as `{"status": "ERROR", "error": "..."}` while the Runpod job s
 ## Vast.ai (ComfyUI in the browser)
 
 `vast/provision-wan22.sh` downloads the Wan 2.2 models into Vast.ai's ComfyUI template
-on startup. Put the script at a public raw URL (e.g. a secret GitHub Gist), copy the
-ComfyUI template in Vast.ai, set `PROVISIONING_SCRIPT` to that URL and the disk to 150 GB.
+on startup. Copy the ComfyUI template in Vast.ai, set `PROVISIONING_SCRIPT` to
+`https://raw.githubusercontent.com/shipdocs/worker-wan/main/vast/provision-wan22.sh`
+and the disk to 150 GB.
 In ComfyUI use Templates > Video > Wan 2.2 14B (text or image to video) with
 `enable_turbo_mode` = true.
