@@ -36,8 +36,22 @@ for f in "${FILES[@]}"; do
   fi
 done
 
+# ComfyUI's official Wan 2.2 workflows with turbo (4-step LoRA) switched on, added to
+# the Workflows list. Existing files are kept, so your own edits are never overwritten.
+WORKFLOWS="$COMFY/user/default/workflows"
+WF_BASE=https://raw.githubusercontent.com/shipdocs/worker-wan/main/vast/workflows
+mkdir -p "$WORKFLOWS"
+for w in wan22_text_to_video_turbo wan22_image_to_video_turbo; do
+  if [ -s "$WORKFLOWS/$w.json" ]; then echo "  ok      workflow $w"; continue; fi
+  if wget -q -O "$WORKFLOWS/$w.json.part" "$WF_BASE/$w.json"; then
+    mv "$WORKFLOWS/$w.json.part" "$WORKFLOWS/$w.json"; echo "  added   workflow $w"
+  else
+    rm -f "$WORKFLOWS/$w.json.part"; echo "  FAILED  workflow $w"; failed=1
+  fi
+done
+
 if [ "$failed" = 0 ]; then
-  echo "Wan 2.2: all models ready. In ComfyUI: Templates > Video > Wan 2.2 14B, set enable_turbo_mode = true."
+  echo "Wan 2.2: all models ready. In ComfyUI: Workflows > wan22_text_to_video_turbo or wan22_image_to_video_turbo."
 else
   echo "Wan 2.2: some downloads failed; restart the instance or run this script again."
 fi

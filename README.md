@@ -104,5 +104,6 @@ Errors come back as `{"status": "ERROR", "error": "..."}` while the Runpod job s
 on startup. Copy the ComfyUI template in Vast.ai, set `PROVISIONING_SCRIPT` to
 `https://raw.githubusercontent.com/shipdocs/worker-wan/main/vast/provision-wan22.sh`
 and the disk to 150 GB.
-In ComfyUI use Templates > Video > Wan 2.2 14B (text or image to video) with
-`enable_turbo_mode` = true.
+It also adds two workflows to ComfyUI's Workflows list, `wan22_text_to_video_turbo` and
+`wan22_image_to_video_turbo`: ComfyUI's official Wan 2.2 14B templates with
+`enable_turbo_mode` (the 4-step LoRAs) switched on.
