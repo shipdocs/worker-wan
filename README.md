@@ -34,7 +34,9 @@ pinned revision) when it starts:
    - Optional env: `WAN_MODES=t2v` or `i2v` to download and serve only one mode (half the weights)
 3. Publish a GitHub release to trigger a build.
 
-The first worker start downloads the weights. Watch the worker logs for `Models ready`.
+The first worker start downloads the weights (69 GB for both modes, 38 GB for one). It checks
+the free space first and stops with a clear message if the models won't fit. Watch the worker
+logs for `Models ready`.
 
 ## Input
 

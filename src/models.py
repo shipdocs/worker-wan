@@ -7,6 +7,7 @@ downloads them to its container disk.
 """
 
 import os
+import shutil
 from pathlib import Path
 
 # Comfy-Org's repackaged Wan 2.2 files, pinned to a commit for reproducibility.
@@ -62,13 +63,41 @@ def files_for(modes: tuple[str, ...]) -> tuple[str, ...]:
     return SHARED_FILES + tuple(f for m in modes for f in MODE_FILES[m])
 
 
+def missing_files(modes: tuple[str, ...], target: Path) -> list[str]:
+    return [f for f in files_for(modes) if not (target / f).is_file()]
+
+
+def check_free_space(needed: int, target: Path) -> None:
+    """Fail with a clear message instead of a half-finished download."""
+    target.mkdir(parents=True, exist_ok=True)
+    free = shutil.disk_usage(target).free
+    margin = 2 * 1024**3
+    if free < needed + margin:
+        msg = (
+            f"Not enough disk space in {target}: the models need {needed / 1e9:.0f} GB, "
+            f"{free / 1e9:.0f} GB is free. Attach a network volume of at least 100 GB, "
+            "raise the container disk, or set WAN_MODES=t2v (or i2v) to download one mode."
+        )
+        raise RuntimeError(msg)
+
+
 def ensure_models(modes: tuple[str, ...], target: Path) -> None:
     """Download any missing model files into ``target`` (resumable, lock-protected)."""
-    from huggingface_hub import hf_hub_download
+    missing = missing_files(modes, target)
+    if not missing:
+        print(f"Models ready in {target}", flush=True)
+        return
 
-    for filename in files_for(modes):
-        if (target / filename).is_file():
-            continue
+    # Keep Hugging Face's own caches off the (small) container disk: write
+    # straight into ``target`` and don't keep a second copy in the Xet chunk cache.
+    os.environ.setdefault("HF_HOME", str(target / ".hf-home"))
+    os.environ.setdefault("HF_XET_CHUNK_CACHE_SIZE_BYTES", "0")
+    from huggingface_hub import HfApi, hf_hub_download
+
+    sizes = HfApi().get_paths_info(REPO_ID, missing, revision=REVISION)
+    check_free_space(sum(getattr(f, "size", 0) or 0 for f in sizes), target)
+
+    for filename in missing:
         print(f"Downloading {filename} ...", flush=True)
         hf_hub_download(REPO_ID, filename, revision=REVISION, local_dir=target)
     print(f"Models ready in {target}", flush=True)

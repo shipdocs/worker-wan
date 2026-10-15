@@ -103,3 +103,23 @@ def test_load_image_accepts_data_url() -> None:
     assert load_image(encoded).size == (32, 16)
     with pytest.raises(ValueError):
         load_image("not base64!!")
+
+
+def test_check_free_space(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import shutil
+    from collections import namedtuple
+
+    usage = namedtuple("usage", "total used free")
+    monkeypatch.setattr(shutil, "disk_usage", lambda _: usage(0, 0, 10 * 1024**3))
+    models.check_free_space(5 * 1024**3, tmp_path)
+    with pytest.raises(RuntimeError, match="network volume"):
+        models.check_free_space(69 * 1024**3, tmp_path)
+
+
+def test_missing_files(tmp_path) -> None:
+    present = models.SHARED_FILES[0]
+    (tmp_path / present).parent.mkdir(parents=True)
+    (tmp_path / present).touch()
+    missing = models.missing_files(("t2v",), tmp_path)
+    assert present not in missing
+    assert len(missing) == len(models.files_for(("t2v",))) - 1
